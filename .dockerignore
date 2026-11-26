@@ -1,0 +1,13 @@
+.git
+node_modules
+dist
+data
+.env
+.env.*
+!.env.example
+.superpowers
+.sites-runtime
+.openai
+*.zip
+*.tar.gz
+*.log

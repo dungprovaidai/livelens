@@ -1,0 +1,13 @@
+node_modules/
+dist/
+data/
+.env
+.env.*
+!.env.example
+.sites-runtime/
+.superpowers/
+*.log
+*.tar.gz
+*.zip
+!public/livelens-source.zip
+.DS_Store

@@ -1,0 +1,51 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${BIND_HOST:-127.0.0.1}:${PORT:-3001}:3001"
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3001
+      APP_TOKEN: ${APP_TOKEN:?Set APP_TOKEN in .env}
+      SIGN_API_KEY: ${SIGN_API_KEY:-}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      DATABASE_URL: postgres://livelens:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/livelens
+    depends_on:
+      db:
+        condition: service_healthy
+    init: true
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: livelens
+      POSTGRES_DB: livelens
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U livelens -d livelens"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  proxy:
+    image: caddy:2-alpine
+    profiles: ["https"]
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:-localhost}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
+volumes:
+  postgres-data:
+  caddy-data:
+  caddy-config:
